@@ -14,6 +14,7 @@ import study.querydsl.entity.Team;
 import javax.persistence.EntityManager;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static study.querydsl.entity.QMember.member;
 import static study.querydsl.entity.QTeam.team;
@@ -248,5 +249,24 @@ public class QuerydslBasicTest {
         assertEquals(teamA.get(member.age.avg()), 15);
         assertEquals(teamB.get(team.name), "teamB");
         assertEquals(teamB.get(member.age.avg()), 35);
+    }
+
+    /**
+     * 팀 A에 소속된 모든 회원 찾기
+     */
+    @Test
+    public void join() throws Exception {
+        //given
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .join(member.team, team)
+                .where(team.name.eq("teamA"))
+                .fetch();
+
+        //when
+        assertThat(fetch)
+                .extracting("username")
+                .containsExactly("member1", "member2");
+        //then
     }
 }
