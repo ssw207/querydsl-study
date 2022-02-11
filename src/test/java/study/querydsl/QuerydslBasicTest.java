@@ -269,4 +269,70 @@ public class QuerydslBasicTest {
                 .containsExactly("member1", "member2");
         //then
     }
+
+    /**
+     * 세타 조인
+     * 회원의 이름이 팀이름과 같은 회원 조인
+     * 외부조인이 불가능하다
+     */
+    @Test
+    public void theta_join () throws Exception {
+        em.persist(new Member("teamA"));
+        em.persist(new Member("teamB"));
+        em.persist(new Member("teamC"));
+
+        //given
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .from(member, team)
+                .where(member.username.eq(team.name))
+                .fetch();
+        //when
+        //then
+        assertThat(fetch)
+                .extracting("username")
+                .containsExactly("teamA", "teamB");
+    }
+
+    /**
+     * 예) 회원과 팀을 조인하면서, 팀 이름이 team4인 팀만, 조인 회원은 모두 조회
+     * japl : select m,t from Memeber m left join m.team t on t.name = 'teamA';
+     * @throws Exception
+     */
+    @Test
+    public void join_on_filtering() throws Exception {
+        //given
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                //.join(member.team, team).where(team.name.eq("teamA"))
+                .leftJoin(member.team, team).on(team.name.eq("teamA"))
+
+                .fetch();
+        //when
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+        //then
+    }
+
+    /**
+     * 연관 관계가 없는 엔티티 외부조인
+     * 회원의 이름이 팀이름과 같은 대상 외부조인
+     */
+    @Test
+    public void join_on_no_relation() throws Exception {
+        //given
+        List<Tuple> result = queryFactory
+                .select(member, team)
+                .from(member)
+                .leftJoin(team).on(member.username.eq(team.name)) // member team이 아님
+                .fetch();
+        
+        //when
+        for (Tuple tuple : result) {
+            System.out.println("tuple = " + tuple);
+        }
+        //then
+    }
 }
