@@ -789,4 +789,37 @@ public class QuerydslBasicTest {
                 .where(member.age.gt(18))
                 .execute();
     }
+
+    /*****************************************************************************
+     *  SQL Function
+     *  1) package org.hibernate.dialect.H2Dialect (각DB에 맞는)에 함수가 정의되어 있어야 사용가능.
+     *  2) 커스텀 함수를 넣으려면 1)을 상속받아 클래스를 만들고 application.yml에 dialect로 사용한다고 정의해야함
+     ****************************************************************************/
+    @Test
+    public void sqlFunction() throws Exception {
+        List<String> result = queryFactory
+                .select(
+                        Expressions.stringTemplate(
+                                "function('replace', {0}, {1}, {2})",
+                                member.username, "member", "M")) // member -> M 으로 변경
+                .from(QMember.member)
+                .fetch();
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
+
+    @Test
+    public void sqlFunction2() throws Exception {
+        List<String> result = queryFactory
+                .select(member.username)
+                .from(member)
+                //.where(member.username.eq(Expressions.stringTemplate("function('lower', {0})", member.username)))
+                .where(member.username.eq(member.username.lower()))
+                .fetch();
+
+        for (String s : result) {
+            System.out.println("s = " + s);
+        }
+    }
 }
