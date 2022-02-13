@@ -727,4 +727,66 @@ public class QuerydslBasicTest {
     private Predicate allEq(String usernameCond, Integer ageCond) {
         return usernameEq(usernameCond).and(ageEq(ageCond));
     }
+
+    /*****************************************************************************
+     * 벌크 연산
+     * 주의점
+     * 1) 벌크연산은 연속성 컨텍스트를 무시하고 DB에 반영하므로 벌크 연산직후에는 DB와 영속성 컨텍스트가 다를수있다.
+     * 2) DB와 영속성 컨텍스트가 다르면 영속성 컨텍스트에 우선권이있다.
+     * 3) 벌크 연산이후 em.flush(); em.clear();로 DB와 영속성 컨텍스트를 동기화해야 불일치가 발생하지 않음
+     *****************************************************************************/
+
+    @Test
+    public void bulkUpdate() throws Exception {
+        //member1 = 10 -> 비회원
+        //member2 = 20 -> 비회원
+        //member2 = 30 -> 유지
+        //member2 = 40 -> 유지
+        
+        //count = 영향을 받은 row수
+        long count = queryFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute();
+
+        em.flush(); //영속성 컨텍스트를 DB와 매칭
+        em.clear(); //영속성 컨텍스트를 초기화
+
+        //flush, clear를 하지 않으면 벌크연산으로 DB값은 바뀌었지만 영속성 컨텍스트 값은 바뀌지 않음
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .fetch();
+
+        for (Member fetch1 : fetch) {
+            System.out.println("fetch1 = " + fetch1);
+        }
+    }
+
+    //벌크 더하기
+    @Test
+    public void bulkAdd() throws Exception {
+        long count = queryFactory
+                .update(member)
+                .set(member.age, member.age.add(1)) // age에 일괄로 + 1
+                .execute();
+    }
+
+    //벌크 곱하기
+    @Test
+    public void bulkMultiple() throws Exception {
+        long count = queryFactory
+                .update(member)
+                .set(member.age, member.age.multiply(2)) // age에 일괄로 *2
+                .execute();
+    }
+
+    //벌크 삭제
+    @Test
+    public void bulkDelte() throws Exception {
+        long count = queryFactory
+                .delete(member)
+                .where(member.age.gt(18))
+                .execute();
+    }
 }
