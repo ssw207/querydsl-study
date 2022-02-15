@@ -81,7 +81,7 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom { // 인터�
     }
 
     @Override
-    public List<MemberTeamDto> searchPageComplex(MemberSearchCondition condition, Pageable pageable) {
+    public Page<MemberTeamDto> searchPageComplex(MemberSearchCondition condition, Pageable pageable) {
         return null;
     }
 
