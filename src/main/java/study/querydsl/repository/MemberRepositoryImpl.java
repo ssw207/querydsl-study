@@ -1,10 +1,12 @@
 package study.querydsl.repository;
 
+import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import study.querydsl.dto.MemberSearchCondition;
@@ -43,9 +45,12 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom { // 인터�
                 .fetch();
     }
 
+    /**
+     * querydsl에서 .fetchResults();를 사용하지 않도록 권장하므로 complex방법으로 사용할것
+     */
     @Override
     public Page<MemberTeamDto> searchPageSimple(MemberSearchCondition condition, Pageable pageable) {
-        List<MemberTeamDto> content = queryFactory
+        QueryResults<MemberTeamDto> result = queryFactory
                 .select(new QMemberTeamDto(
                         member.id.as("memberId"),
                         member.username,
@@ -63,21 +68,12 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom { // 인터�
                 )
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .fetch();
+                .fetchResults();
 
-        JPAQuery<Long> countQuery = queryFactory
-                .select(member.count())
-                .from(member)
-                .leftJoin(member.team, team)
-                .where(
-                        usernameEq(condition.getUsername()),
-                        teamNameEq(condition.getTeamName()),
-                        ageGoe(condition.getAgeGoe()),
-                        ageLoe(condition.getAgeLoe())
-                );
+        List<MemberTeamDto> content = result.getResults();
+        long total = result.getTotal();
 
-        //getPage에서 count쿼리가 필요할때만 날림
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+        return new PageImpl<>(content, pageable, total);
     }
 
     @Override
