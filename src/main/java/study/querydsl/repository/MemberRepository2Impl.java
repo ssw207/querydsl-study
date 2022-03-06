@@ -37,25 +37,6 @@ public class MemberRepository2Impl extends QuerydslRepositorySupport { // 인터
                 .fetch();
     }
 
-//    public Page<MemberTeamDto> searchPageSimple(MemberSearchCondition condition, Pageable pageable) {
-//        JPQLQuery<MemberTeamDto> query = from(member)
-//                .leftJoin(member.team, team)
-//                .select(new QMemberTeamDto(
-//                        member.id.as("memberId"),
-//                        member.username,
-//                        member.age,
-//                        team.id.as("teamId"),
-//                        team.name.as("teamName")));
-//
-//        JPQLQuery<MemberTeamDto> query2 = getQuerydsl().applyPagination(pageable, query);
-//        query2.fetch();
-//
-//        List<MemberTeamDto> content = result.getResults();
-//        long total = result.getTotal();
-//
-//        return new PageImpl<>(content, pageable, total);
-//    }
-
 //    public Page<MemberTeamDto> searchPageComplex(MemberSearchCondition condition, Pageable pageable) {
 //        List<MemberTeamDto> content = queryFactory
 //                .select(new QMemberTeamDto(
